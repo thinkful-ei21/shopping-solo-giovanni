@@ -1,17 +1,18 @@
 'use strict';
 
 const STORE = [
-  {name: "apples", checked: false},
-  {name: "oranges", checked: false},
-  {name: "milk", checked: true},
-  {name: "bread", checked: false}
+  {name: 'init', hideChecked: false, searchString: ''},
+  {name: 'apples', checked: false},
+  {name: 'oranges', checked: false},
+  {name: 'milk', checked: true},
+  {name: 'bread', checked: false}
 ];
 
 
 function generateItemElement(item, itemIndex, template) {
-  return `
+  return item === null ? '' : `
     <li class="js-item-index-element" data-item-index="${itemIndex}">
-      <span class="shopping-item js-shopping-item ${item.checked ? "shopping-item__checked" : ''}">${item.name}</span>
+      <span class="shopping-item js-shopping-item ${item.checked ? 'shopping-item__checked' : ''}">${item.name}</span>
       <div class="shopping-item-controls">
         <button class="shopping-item-toggle js-item-toggle">
             <span class="button-label">check</span>
@@ -25,18 +26,36 @@ function generateItemElement(item, itemIndex, template) {
 
 
 function generateShoppingItemsString(shoppingList) {
-  console.log("Generating shopping list element");
+  console.log('Generating shopping list element');
 
   const items = shoppingList.map((item, index) => generateItemElement(item, index));
-  
-  return items.join("");
+  return items.join('');
+}
+
+function filterHidden(array){
+
+  function hideChecked(item){
+    return STORE[0].hideChecked === false || item.checked === false ? item : null  ;
+  }
+
+  function hideBySearch(item){
+    let nameString = '';
+    try{nameString = item.name;}
+    catch(err){console.log(err)}
+    return nameString.includes(STORE[0].searchString) && nameString !== 'init' ? item : null;
+  }
+
+
+  return array.map(hideChecked).map(hideBySearch);
+
 }
 
 
 function renderShoppingList() {
   // render the shopping list in the DOM
   console.log('`renderShoppingList` ran');
-  const shoppingListItemsString = generateShoppingItemsString(STORE);
+  const displayed = filterHidden(STORE)
+  const shoppingListItemsString = generateShoppingItemsString(displayed);
 
   // insert that HTML into the DOM
   $('.js-shopping-list').html(shoppingListItemsString);
@@ -60,7 +79,7 @@ function handleNewItemSubmit() {
 }
 
 function toggleCheckedForListItem(itemIndex) {
-  console.log("Toggling checked property for item at index " + itemIndex);
+  console.log('Toggling checked property for item at index ' + itemIndex);
   STORE[itemIndex].checked = !STORE[itemIndex].checked;
 }
 
@@ -73,7 +92,7 @@ function getItemIndexFromElement(item) {
 }
 
 function handleItemCheckClicked() {
-  $('.js-shopping-list').on('click', `.js-item-toggle`, event => {
+  $('.js-shopping-list').on('click', '.js-item-toggle', event => {
     console.log('`handleItemCheckClicked` ran');
     const itemIndex = getItemIndexFromElement(event.currentTarget);
     toggleCheckedForListItem(itemIndex);
@@ -81,9 +100,24 @@ function handleItemCheckClicked() {
   });
 }
 
+function handleHideCheckedClicked(){
+  $('#item-filter-form').on('change', '.hide-checked-checkbox' , event => {
+    //     console.log('checking')
+    STORE[0].hideChecked = !STORE[0].hideChecked;
+    renderShoppingList();
+  });
+}
+
+function handleSearchTermChanged(){
+  $('#item-filter-form').on('keyup', event => {
+    console.log('searching for', $('#search-field').val() );
+    STORE[0].searchString = $('#search-field').val();
+    renderShoppingList();
+  });
+}
 
 function handleDeleteItemClicked() {
-  $('.js-shopping-list').on('click', `.js-item-delete`, event => {
+  $('.js-shopping-list').on('click', '.js-item-delete', event => {
     console.log('`handleItemDeleteClicked` ran');
     const itemIndex = getItemIndexFromElement(event.currentTarget);
     STORE.splice(itemIndex,1);
@@ -105,6 +139,8 @@ function handleShoppingList() {
   handleNewItemSubmit();
   handleItemCheckClicked();
   handleDeleteItemClicked();
+  handleHideCheckedClicked();
+  handleSearchTermChanged();
 }
 
 // when the page loads, call `handleShoppingList`
