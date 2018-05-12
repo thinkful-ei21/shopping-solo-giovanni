@@ -20,6 +20,9 @@ function generateItemElement(item, itemIndex, template) {
         <button class="shopping-item-delete js-item-delete">
             <span class="button-label">delete</span>
         </button>
+        <button class="shopping-item-edit js-item-edit">
+        <span class="button-label">edit</span>
+    </button>
       </div>
     </li>`;
 }
@@ -41,10 +44,9 @@ function filterHidden(array){
   function hideBySearch(item){
     let nameString = '';
     try{nameString = item.name;}
-    catch(err){console.log(err)}
+    catch(err){console.log(err);}
     return nameString.includes(STORE[0].searchString) && nameString !== 'init' ? item : null;
   }
-
 
   return array.map(hideChecked).map(hideBySearch);
 
@@ -53,7 +55,7 @@ function filterHidden(array){
 
 function renderShoppingList() {
   // render the shopping list in the DOM
-  console.log('`renderShoppingList` ran');
+  // console.log('`renderShoppingList` ran');
   const displayed = filterHidden(STORE)
   const shoppingListItemsString = generateShoppingItemsString(displayed);
 
@@ -110,7 +112,7 @@ function handleHideCheckedClicked(){
 
 function handleSearchTermChanged(){
   $('#item-filter-form').on('keyup', event => {
-    console.log('searching for', $('#search-field').val() );
+  //  console.log('searching for', $('#search-field').val() );
     STORE[0].searchString = $('#search-field').val();
     renderShoppingList();
   });
@@ -126,9 +128,38 @@ function handleDeleteItemClicked() {
 
 
   });
-  // this function will be responsible for when users want to delete a shopping list
-  // item
 }
+
+function handleEditClicked() {
+  $('.js-shopping-list').on('click', '.js-item-edit', event => {
+        
+    const itemIndex = getItemIndexFromElement(event.currentTarget);
+
+    //creates new text field, pulls value from STORE
+    $(event.currentTarget.closest('li')).find('.shopping-item').html(
+      `<form id='#js-edit-form'>
+                <input id='js-edit-field-${itemIndex}' type= "text">
+            </form>`);
+             
+    $(`#js-edit-field-${itemIndex}`).val(STORE[itemIndex].name);
+    $(`#js-edit-field-${itemIndex}`).focus();
+
+    //creates new listener for each open edit form, pushes to STORE
+    $(`#js-edit-field-${itemIndex}`).closest('form').submit(event => {
+      event.preventDefault();
+      const newName = $(`#js-edit-field-${itemIndex}`).val();
+      console.log(newName)
+      STORE[itemIndex].name = newName;
+      renderShoppingList();
+
+    });
+
+  });
+
+
+}
+
+
 
 // this function will be our callback when the page loads. it's responsible for
 // initially rendering the shopping list, and activating our individual functions
@@ -141,6 +172,7 @@ function handleShoppingList() {
   handleDeleteItemClicked();
   handleHideCheckedClicked();
   handleSearchTermChanged();
+  handleEditClicked();
 }
 
 // when the page loads, call `handleShoppingList`
