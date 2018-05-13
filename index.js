@@ -1,12 +1,16 @@
 'use strict';
 
-const STORE = [
-  {name: 'init', hideChecked: false, searchString: ''},
-  {name: 'apples', checked: false},
-  {name: 'oranges', checked: false},
-  {name: 'milk', checked: true},
-  {name: 'bread', checked: false}
-];
+const STORE = {
+  itemList:[
+    {name: 'apples', checked: false},
+    {name: 'oranges', checked: false},
+    {name: 'milk', checked: true},
+    {name: 'bread', checked: false}
+  ],
+  hideChecked : false,
+  searchString : ''
+
+};
 
 
 function generateItemElement(item, itemIndex, template) {
@@ -38,14 +42,14 @@ function generateShoppingItemsString(shoppingList) {
 function filterHidden(array){
 
   function hideChecked(item){
-    return STORE[0].hideChecked === false || item.checked === false ? item : null  ;
+    return STORE.hideChecked === false || item.checked === false ? item : null  ;
   }
 
   function hideBySearch(item){
     let nameString = '';
     try{nameString = item.name;}
-    catch(err){console.log(err);}
-    return nameString.includes(STORE[0].searchString) && nameString !== 'init' ? item : null;
+    catch(err){}
+    return nameString.includes(STORE.searchString) ? item : null;
   }
 
   return array.map(hideChecked).map(hideBySearch);
@@ -56,7 +60,7 @@ function filterHidden(array){
 function renderShoppingList() {
   // render the shopping list in the DOM
   // console.log('`renderShoppingList` ran');
-  const displayed = filterHidden(STORE)
+  const displayed = filterHidden(STORE.itemList)
   const shoppingListItemsString = generateShoppingItemsString(displayed);
 
   // insert that HTML into the DOM
@@ -66,7 +70,7 @@ function renderShoppingList() {
 
 function addItemToShoppingList(itemName) {
   console.log(`Adding "${itemName}" to shopping list`);
-  STORE.push({name: itemName, checked: false});
+  STORE.itemList.push({name: itemName, checked: false});
 }
 
 function handleNewItemSubmit() {
@@ -82,7 +86,7 @@ function handleNewItemSubmit() {
 
 function toggleCheckedForListItem(itemIndex) {
   console.log('Toggling checked property for item at index ' + itemIndex);
-  STORE[itemIndex].checked = !STORE[itemIndex].checked;
+  STORE.itemList[itemIndex].checked = !STORE.itemList[itemIndex].checked;
 }
 
 
@@ -105,7 +109,7 @@ function handleItemCheckClicked() {
 function handleHideCheckedClicked(){
   $('#item-filter-form').on('change', '.hide-checked-checkbox' , event => {
     //     console.log('checking')
-    STORE[0].hideChecked = !STORE[0].hideChecked;
+    STORE.hideChecked = !STORE.hideChecked;
     renderShoppingList();
   });
 }
@@ -113,7 +117,7 @@ function handleHideCheckedClicked(){
 function handleSearchTermChanged(){
   $('#item-filter-form').on('keyup', event => {
   //  console.log('searching for', $('#search-field').val() );
-    STORE[0].searchString = $('#search-field').val();
+    STORE.searchString = $('#search-field').val();
     renderShoppingList();
   });
 }
@@ -122,8 +126,8 @@ function handleDeleteItemClicked() {
   $('.js-shopping-list').on('click', '.js-item-delete', event => {
     console.log('`handleItemDeleteClicked` ran');
     const itemIndex = getItemIndexFromElement(event.currentTarget);
-    STORE.splice(itemIndex,1);
-    console.log(STORE);
+    STORE.itemList.splice(itemIndex,1);
+    console.log(STORE.itemList);
     renderShoppingList();
 
 
@@ -141,7 +145,7 @@ function handleEditClicked() {
                 <input id='js-edit-field-${itemIndex}' type= "text">
             </form>`);
              
-    $(`#js-edit-field-${itemIndex}`).val(STORE[itemIndex].name);
+    $(`#js-edit-field-${itemIndex}`).val(STORE.itemList[itemIndex].name);
     $(`#js-edit-field-${itemIndex}`).focus();
 
     //creates new listener for each open edit form, pushes to STORE
@@ -149,7 +153,7 @@ function handleEditClicked() {
       event.preventDefault();
       const newName = $(`#js-edit-field-${itemIndex}`).val();
       console.log(newName)
-      STORE[itemIndex].name = newName;
+      STORE.itemList[itemIndex].name = newName;
       renderShoppingList();
 
     });
